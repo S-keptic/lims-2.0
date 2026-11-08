@@ -1,0 +1,29 @@
+services:
+  backend:
+    build: ./backend
+    container_name: lims-backend
+    ports:
+      - "3000:3000"
+
+
+
+
+
+  postgres:
+    image: postgres:16
+    container_name: lims-postgres
+    environment:
+      POSTGRES_USER: lims
+      POSTGRES_PASSWORD: lims_password
+      POSTGRES_DB: lims
+
+    ports:
+     - "5432:5432"
+
+
+
+  redis:
+    image: redis:7-alpine
+    container_name: lims-redis
+    ports:
+      - "6379:6379"

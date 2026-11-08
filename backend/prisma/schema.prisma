@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id Int @id @default(autoincrement())
+
+  name String
+
+  email String @unique
+
+  passwordHash String
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  applications Application[]
+}
+
+model Application {
+  id Int @id @default(autoincrement())
+
+  name String
+
+  repositoryUrl String
+
+  branch String @default("main")
+
+  status String @default("ACTIVE")
+
+  ownerId Int
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id])
+
+  deployments Deployment[]
+}
+
+enum DeploymentStatus {
+  QUEUED
+  CLONING
+  BUILDING
+  STARTING
+  HEALTH_CHECK
+  RUNNING
+  STOPPED
+  FAILED
+}
+
+model Deployment {
+  id            Int              @id @default(autoincrement())
+  applicationId Int
+  status        DeploymentStatus @default(QUEUED)
+  commitHash    String?
+  startedAt     DateTime?
+  finishedAt    DateTime?
+
+  containerId   String?
+  hostPort      Int?
+  deploymentUrl String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  application Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  logs        DeploymentLog[]
+}
+
+model DeploymentLog {
+  id           Int      @id @default(autoincrement())
+  deploymentId Int
+  message      String   @db.Text
+  logType      String   @default("INFO")
+  createdAt    DateTime @default(now())
+
+  deployment Deployment @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
+
+  @@index([deploymentId, createdAt])
+}
